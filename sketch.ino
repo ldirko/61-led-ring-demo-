@@ -1,4 +1,4 @@
-//61 led rings cilindrical map demo
+//61 led rings cilindrical and planar maps demo
 //Yaroslaw Turbin 05-04-2021
 //https://vk.com/ldirko
 //https://www.reddit.com/user/ldirko/
