@@ -12,6 +12,9 @@
 #define NUM_COLS_CILINDR 24           // resolution for cilindrical lookup table
 #define NUM_ROWS_CILINDR 5   
 
+#define NUM_COLS_PLANAR 11           // resolution for planar lookup table
+#define NUM_ROWS_PLANAR 15   
+
 #define LED_TYPE    WS2812B          //leds type
 #define COLOR_ORDER GRB              //color order of leds
 #define MAX_POWER_MILLIAMPS 800  //write here your power in milliamps. default i set 800 mA for safety
@@ -51,7 +54,7 @@ void setup() {
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {seven,six,five,first, second, trird,four}; 
+SimplePatternList gPatterns = {patternPlanar,firePlanar,seven,six,five,first, second, trird,four}; 
 
 void loop() {
 
@@ -136,14 +139,55 @@ leds[index].setRGB( (sin8(i*32+a)+cos8(j*16+a/2))/2, sin8(j*16+a/2+sin8(leds[ind
 GammaCorrection();
 }
 
+void firePlanar() {
+int  a = millis();
+for (int j = 0; j < NUM_ROWS_PLANAR; j++) {
+for (int i = 0; i < NUM_COLS_PLANAR; i++) {
+   byte index =  XY_planar(i,j);
+if (index!=61)
+leds[index] = HeatColor(qsub8 (inoise8 (i * 60 , j * 60+ a , a /3), abs8(j - (NUM_ROWS_PLANAR-1)) * 255 / (NUM_ROWS_PLANAR+2)));
+}}
+}
+
+void patternPlanar() {
+int  a = millis();
+for (int j = 0; j < NUM_ROWS_PLANAR; j++) {
+for (int i = 0; i < NUM_COLS_PLANAR; i++) {
+   byte index =  XY_planar(i,j);
+if (index!=61)
+ leds[index].setHue (sin8((i<<4)+a/6)/2+sin8((j<<4)+a/6)/2);
+}}
+}
+
 byte XY_cilindrical (byte x, byte y) {
 static const byte CilindricalLookTable [] =     //1/6 of full table for reduce memory size. little bit tricky to calculate index )) 
-{0, 1, 2, 3, 24,25,61,26, 42,61,43,61, 54,61,61,61, 60,61,61,61};
+{0, 1, 2, 3, 24, 25, 61, 26, 42, 61, 43, 61, 54, 61, 61, 61, 60, 61, 61, 61};
 static const byte offs [] = {4, 3, 2, 1, 0};
 
-byte index = CilindricalLookTable [y*4+x%4] ;
-if (index!=61) {index+= (x/4)*offs[y];}
+byte index = CilindricalLookTable [(y<<2)+x%4] ;
+if (index!=61) {index+= (x>>2)*offs[y];}
+return (index);
+}
 
+byte XY_planar (byte x, byte y) {
+static const byte PlanarLookTable [] ={
+61,61,61,61,23,0,1,61,61,61,61,
+61,61,61,22,61,61,61,2,61,61,61, 
+61,61,21,61,41,24,25,61,3,61,61,
+61,20,61,40,61,42,61,26,61,4,61,
+61,61,39,61,53,61,43,61,27,61,61,
+19,61,61,52,61,54,61,44,61,61,5,
+61,61,38,61,59,61,55,61,28,61,61,
+18,61,61,51,61,60,61,45,61,61,6,
+61,61,37,61,58,61,56,61,29,61,61,
+17,61,61,50,61,57,61,46,61,61,7,
+61,61,36,61,49,61,47,61,30,61,61,
+61,16,61,35,61,48,61,31,61,8,61,
+61,61,15,61,34,33,33,61,9,61,61,
+61,61,61,14,61,61,61,10,61,61,61,
+61,61,61,61,13,12,11,61,61,61,61};
+
+byte index = PlanarLookTable [y*NUM_COLS_PLANAR+x];
 return (index);
 }
 
